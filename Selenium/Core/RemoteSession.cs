@@ -5,6 +5,7 @@ namespace Selenium.Core {
     class RemoteSession {
 
         public readonly bool IsLocal;
+        internal int DriverProcessId;
         public readonly RemoteServer server;
         public readonly Mouse mouse;
         public readonly Keyboard keyboard;
@@ -19,6 +20,8 @@ namespace Selenium.Core {
 
         private string _id = null;
         private string _uri = null;
+        private bool _recoveringWindow;
+        internal Action<Exception,string> ErrorRecorder;
 
         public RemoteSession(string address, bool islocal, Timeouts timeouts) {
             this.IsLocal = islocal;
@@ -184,6 +187,28 @@ namespace Selenium.Core {
         }
 
         public object Send(RequestMethod method, string relativeUri, Dictionary data) {
+            try { return SendWithRecovery(method,relativeUri,data); }
+            catch(Exception error) { if(ErrorRecorder!=null)ErrorRecorder(error,method+" "+relativeUri);throw; }
+        }
+        private object SendWithRecovery(RequestMethod method, string relativeUri, Dictionary data) {
+            try {
+                return SendRaw(method, relativeUri, data);
+            } catch (Errors.NoSuchWindowError) {
+                if (_id == null || _recoveringWindow || (method == RequestMethod.POST && relativeUri == "/window")) throw;
+                _recoveringWindow = true;
+                bool recovered;
+                try { recovered = windows.TryRecoverClosedWindow(); }
+                finally { _recoveringWindow = false; }
+                // Replay only reads and element lookup, never a click, script or submission.
+                bool readOnly = method == RequestMethod.GET ||
+                    (method == RequestMethod.POST && relativeUri != null &&
+                        (relativeUri.EndsWith("/element", StringComparison.Ordinal) || relativeUri.EndsWith("/elements", StringComparison.Ordinal)));
+                if (!recovered || !readOnly) throw;
+                return SendRaw(method, relativeUri, data);
+            }
+        }
+
+        internal object SendRaw(RequestMethod method, string relativeUri, Dictionary data) {
             string uri = relativeUri == null ? _uri : (_uri + relativeUri);
             Dictionary result = server.Send(method, uri, data);
             if (result == null)

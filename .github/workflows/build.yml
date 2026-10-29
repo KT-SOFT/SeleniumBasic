@@ -1,0 +1,23 @@
+name: Build and test SeleniumBasic KTOOL
+on:
+  push:
+    branches: [master]
+    tags: ['v*-ktool*']
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build installer and run 32/64-bit regression tests
+        shell: pwsh
+        run: ./KTOOL/Build.ps1 -Test
+      - uses: actions/upload-artifact@v4
+        with:
+          name: SeleniumBasic-KTOOL-setup
+          path: |
+            KTOOL/dist/SeleniumBasic-KTOOL-*.exe
+            KTOOL/dist/SHA256SUMS.txt

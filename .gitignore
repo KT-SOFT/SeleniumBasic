@@ -11,3 +11,14 @@ Xlbin
 *.user
 *.xlt
 *.xls
+# KTOOL local build inputs and private test browser profile
+/KTOOL/Baseline/
+/KTOOL/tools/
+/KTOOL/upstream-payload/
+/KTOOL/drivers/
+/KTOOL/real-browser-test/
+/KTOOL/dist/
+/KTOOL/staging/
+
+/KTOOL/Tests/*Results.txt
+/KTOOL/Repository.json

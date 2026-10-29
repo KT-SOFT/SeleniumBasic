@@ -61,6 +61,30 @@ namespace Selenium {
 
         private Timeouts timeouts = new Timeouts();
         private IDriverService _service = null;
+        private int _lastErrorCode, _lastErrorHResult;
+        private string _lastErrorMessage = "", _lastErrorStage = "", _lastErrorTime = "";
+        /// <summary>Last failed operation's protocol or driver-preparation code.</summary>
+        public int LastErrorCode { get { return _lastErrorCode; } }
+        /// <summary>Last error message, retained until ClearLastError.</summary>
+        public string LastErrorMessage { get { return _lastErrorMessage; } }
+        /// <summary>Operation that failed.</summary>
+        public string LastErrorStage { get { return _lastErrorStage; } }
+        /// <summary>UTC timestamp of the last error.</summary>
+        public string LastErrorTime { get { return _lastErrorTime; } }
+        /// <summary>Original HRESULT for VBA diagnostics.</summary>
+        public int LastErrorHResult { get { return _lastErrorHResult; } }
+        /// <summary>Machine-readable last error information.</summary>
+        public string LastErrorJson { get { return new System.Web.Script.Serialization.JavaScriptSerializer().Serialize(new {code=_lastErrorCode,hresult=_lastErrorHResult,message=_lastErrorMessage,stage=_lastErrorStage,time=_lastErrorTime}); } }
+        /// <summary>Clear the retained error without changing the browser session.</summary>
+        public void ClearLastError() { _lastErrorCode=0;_lastErrorHResult=0;_lastErrorMessage="";_lastErrorStage="";_lastErrorTime=""; }
+        private void RecordError(Exception error, string stage) {
+            _lastErrorHResult=error.HResult;
+            _lastErrorCode=error is SeleniumError ? error.HResult & 0xffff : -1;
+            if (_lastErrorCode==0) _lastErrorCode=-1;
+            _lastErrorMessage=error.Message;
+            _lastErrorStage=stage;
+            _lastErrorTime=DateTime.UtcNow.ToString("o");
+        }
         private RemoteSession _session = null;
         private string _baseUrl = null;
         private Proxy _proxy = null;
@@ -250,14 +274,18 @@ namespace Selenium {
                 RegisterRunningObject();
 
                 _session = new RemoteSession(_service.Uri, true, this.timeouts);
+                _session.ErrorRecorder = RecordError;
+                DriverService localService = _service as DriverService;
+                if (localService != null) _session.DriverProcessId = localService.ProcessId;
                 _session.Start(this.Capabilities);
 
                 if (!string.IsNullOrEmpty(baseUrl))
                     this.BaseUrl = baseUrl;
-            } catch (SeleniumException) {
+            } catch (SeleniumException ex) {
+                RecordError(ex, ex is DriverPreparationError ? "driver-update" : "Start");
                 throw;
             } catch (Exception ex) {
-                throw new SeleniumException(ex);
+                SeleniumException error=new SeleniumException(ex);RecordError(error,"Start");throw error;
             }
         }
 
@@ -305,14 +333,16 @@ namespace Selenium {
                     this.Capabilities.BrowserVersion = version;
 
                 _session = new RemoteSession(executorUri, false, this.timeouts);
+                _session.ErrorRecorder = RecordError;
                 _session.Start(this.Capabilities);
 
                 RegisterRunningObject();
 
-            } catch (SeleniumException) {
+            } catch (SeleniumException ex) {
+                RecordError(ex,"StartRemotely");
                 throw;
             } catch (Exception ex) {
-                throw new SeleniumException(ex);
+                SeleniumException error=new SeleniumException(ex);RecordError(error,"StartRemotely");throw error;
             }
         }
 
@@ -637,6 +667,16 @@ namespace Selenium {
                 return windows;
             }
         }
+        /// <summary>The handle of the live currently selected browser window.</summary>
+        public string WindowHandle { get { return session.windows.CurrentWindow.Handle; } }
+        /// <summary>Handles of the browser windows still open in this session.</summary>
+        public List WindowHandles { get { return WindowContext.GetWindowsHandles(session); } }
+        /// <summary>Switch to an exact browser window handle.</summary>
+        public Window SwitchToWindowByHandle(string handle, int timeout = -1, bool raise = true) {
+            return SwitchToWindowByName(handle, timeout, raise);
+        }
+        /// <summary>Recover a surviving window after a popup closes itself.</summary>
+        public Window RecoverWindow() { return session.windows.RecoverWindow(); }
 
         /// <summary>
         /// Closes the current window.
@@ -825,7 +865,8 @@ namespace Selenium {
         public Window SwitchToWindowByName(string name, int timeout = -1, bool raise = true) {
             try {
                 return session.windows.SwitchToWindowByName(name, timeout);
-            } catch (Errors.NoSuchWindowError) {
+            } catch (Errors.NoSuchWindowError ex) {
+                RecordError(ex,"SwitchToWindowByName");
                 if (raise)
                     throw new Errors.NoSuchWindowError(name);
                 return null;
@@ -842,7 +883,8 @@ namespace Selenium {
         public Window SwitchToWindowByTitle(string title, int timeout = -1, bool raise = true) {
             try {
                 return session.windows.SwitchToWindowByTitle(title, timeout);
-            } catch (Errors.NoSuchWindowError) {
+            } catch (Errors.NoSuchWindowError ex) {
+                RecordError(ex,"SwitchToWindowByTitle");
                 if (raise)
                     throw new Errors.NoSuchWindowError(title);
                 return null;
@@ -858,7 +900,8 @@ namespace Selenium {
         public Window SwitchToNextWindow(int timeout = -1, bool raise = true) {
             try {
                 return session.windows.SwitchToNextWindow(timeout);
-            } catch (Errors.NoSuchWindowError) {
+            } catch (Errors.NoSuchWindowError ex) {
+                RecordError(ex,"SwitchToNextWindow");
                 if (raise)
                     throw;
                 return null;

@@ -30,6 +30,12 @@ namespace Selenium {
         private readonly WindowContext _windows;
         private string _handle = null;
         internal int _hash = 0;
+        internal string KnownHandle { get { return _handle; } }
+        internal void BindHandle(string handle) {
+            if (_handle != null && _handle != handle) throw new Errors.ArgumentError("Window identity cannot be changed.");
+            _handle = handle;
+            _hash = handle.GetHashCode();
+        }
 
         internal Window(RemoteSession session, WindowContext windows, string handle) {
             _session = session;
@@ -50,7 +56,7 @@ namespace Selenium {
         /// </summary>
         /// <returns></returns>
         public override int GetHashCode() {
-            if (_hash == 0) {
+            if (_handle == null) {
                 _handle = Window.GetWindowHandle(_session);
                 _hash = _handle.GetHashCode();
             }
@@ -67,6 +73,15 @@ namespace Selenium {
                     _hash = _handle.GetHashCode();
                 }
                 return _handle;
+            }
+        }
+        /// <summary>Whether this browser window handle still exists.</summary>
+        public bool IsAlive { get { return _windows.IsAlive(this); } }
+        /// <summary>Decimal Win32 HWND for an unambiguous local browser window, or "0".</summary>
+        public string NativeHandle {
+            get {
+                if (!_session.IsLocal || !IsAlive) return "0";
+                return Selenium.Internal.NativeWindowHandle.Find(_session.DriverProcessId, this.Title);
             }
         }
 
@@ -194,6 +209,7 @@ namespace Selenium {
             if (this != _windows.CurrentWindow)
                 this.Activate();
             _session.Send(RequestMethod.DELETE, "/window");
+            _windows.WindowClosed(this);
         }
 
     }

@@ -15,12 +15,21 @@ namespace Selenium {
 
         internal SeleniumException(Exception exception)
             : base(exception.Message, exception) {
-            EventLog.WriteEntry("SeleniumBasic", this.Message, EventLogEntryType.Error);
+            TryLog(this.Message);
         }
 
         internal SeleniumException(string message, params object[] args)
             : base(args.Length > 0 ? string.Format(message, args) : message) {
-            EventLog.WriteEntry("SeleniumBasic", this.Message, EventLogEntryType.Error);
+            TryLog(this.Message);
+        }
+        private static void TryLog(string message) {
+            // Logging must never replace the real error with an Event Log
+            // permission error in an ordinary VBA/Excel user session.
+            try { EventLog.WriteEntry("SeleniumBasic",message,EventLogEntryType.Error); }
+            catch {
+                try { string folder=Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),"KTOOL","SeleniumLogs");Directory.CreateDirectory(folder);File.AppendAllText(Path.Combine(folder,"Selenium-errors.log"),DateTime.UtcNow.ToString("o")+" "+message+Environment.NewLine); }
+                catch { }
+            }
         }
 
         /// <summary>

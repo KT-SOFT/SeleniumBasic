@@ -4,11 +4,11 @@
 
 #define AppName "Selenium"
 #define AppID "{{0277FC34-FD1B-4616-BB19-1FDB7381B291}"
-#define AppLongName "Selenium Basic"
-#define AppPublisher "Florent BREHERET"
-#define AppURL "https://github.com/florentbr/SeleniumBasic"
+#define AppLongName "SeleniumBasic KTOOL"
+#define AppPublisher "KT-SOFT (SeleniumBasic fork)"
+#define AppURL "https://github.com/KT-SOFT/SeleniumBasic"
 #define AppFolder "SeleniumBasic"
-#define AppSetupFilename "SeleniumBasic-" + ASSEMBLY_VERSION
+#define AppSetupFilename "SeleniumBasic-Core-" + ASSEMBLY_VERSION
 
 [Setup]
 
@@ -24,6 +24,12 @@ AppPublisherURL={#AppURL}
 AppSupportURL={#AppURL}
 AppUpdatesURL={#AppURL}
 DisableDirPage=yes
+DisableWelcomePage=yes
+DisableReadyPage=yes
+DisableFinishedPage=yes
+CloseApplications=no
+RestartApplications=no
+MinVersion=10.0
 DefaultDirName={code:GetRootDir}
 UsePreviousAppDir=no
 UsePreviousSetupType=yes
@@ -42,7 +48,7 @@ ArchitecturesInstallIn64BitMode=x64
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [CustomMessages]
-MsgNETFrameworkNotInstalled=Microsoft .NET Framework 3.5 installation was Not detected. 
+MsgNETFrameworkNotInstalled=Microsoft .NET Framework 4.8 installation was not detected.
 MsgRegistryWriteFailure=Failed to register the library due to insufficient privileges. 
 MsgFileNotFound=File Not found: %1. 
 MsgCOMInvokeFailed=Installation failed. The installer was unable to call the registered library. 
@@ -64,6 +70,8 @@ Source: "Selenium\bin\Release\Selenium.dll";   DestDir: "{app}"; Flags: ignoreve
 Source: "Selenium\bin\Release\Selenium.pdb";   DestDir: "{app}"; Flags: ignoreversion; Components: pkg_core;
 Source: "Selenium\bin\Release\Selenium32.tlb"; DestDir: "{app}"; Flags: ignoreversion; Components: pkg_core;
 Source: "Selenium\bin\Release\Selenium64.tlb"; DestDir: "{app}"; Flags: ignoreversion; Components: pkg_core; Check: IsWin64;
+Source: "Selenium\bin\Release\SeleniumBasic.DriverSetup.exe"; DestDir: "{app}"; Flags: ignoreversion; Components: pkg_core;
+Source: "KTOOL\README_KTOOL.txt"; DestDir: "{app}"; Flags: ignoreversion; Components: pkg_core;
 
 Source: "Selenium\bin\Help\Selenium.chm"; DestDir: "{app}"; Flags: ignoreversion; Components: pkg_core;                                                                                                    
 
@@ -74,12 +82,10 @@ Source: "VbsConsole\bin\Release\vbsc.exe"; DestDir: "{app}"; Flags: ignoreversio
 
 ;drivers
 Source: "References\firefoxdriver.xpi"; DestDir: "{app}"; Flags: ignoreversion; Components: pkg_ff;
-Source: "References\chromedriver.exe";  DestDir: "{app}"; Flags: ignoreversion; Components: pkg_cr;
 Source: "References\operadriver.exe";   DestDir: "{app}"; Flags: ignoreversion; Components: pkg_op;
 Source: "References\phantomjs.exe";     DestDir: "{app}"; Flags: ignoreversion; Components: pkg_pjs;
 Source: "References\iedriver.exe";      DestDir: "{app}"; Flags: ignoreversion; Components: pkg_ie;
 ;Source: "References\iedriver64.exe";    DestDir: "{app}"; Flags: ignoreversion; Components: pkg_ie;  Check: IsWin64;
-Source: "References\edgedriver.exe";    DestDir: "{app}"; Flags: ignoreversion; Components: pkg_edg;
 
 ;Firefox extensions
 Source: "FirefoxAddons\bin\extensions.xpi"; DestDir: "{app}"; Flags: ignoreversion; Components: pkg_ide;
@@ -97,14 +103,6 @@ Source: "Examples\Excel\*.xlsm";      DestDir: "{app}\Examples\Excel";      Flag
 Source: "Examples\AutoIt\*.au3";      DestDir: "{app}\Examples\AutoIt";     Flags: ignoreversion overwritereadonly; Attribs:readonly; Components: pkg_doc; Check: HasAutoIt
 
 ;copy config file
-Source: "References\exe.config" ; DestDir: "{sys}";      DestName: "wscript.exe.config"; Flags: ignoreversion uninsneveruninstall; Check: HasPrivileges;
-Source: "References\exe.config" ; DestDir: "{sys}";      DestName: "cscript.exe.config"; Flags: ignoreversion uninsneveruninstall; Check: HasPrivileges;
-Source: "References\exe.config" ; DestDir: "{syswow64}"; DestName: "wscript.exe.config"; Flags: ignoreversion uninsneveruninstall; Check: IsWin64 And HasPrivileges;
-Source: "References\exe.config" ; DestDir: "{syswow64}"; DestName: "cscript.exe.config"; Flags: ignoreversion uninsneveruninstall; Check: IsWin64 And HasPrivileges;
-Source: "References\exe.config" ; DestDir: "{code:GetAppFolder|excel.exe}";    DestName: "EXCEL.EXE.CONFIG";    Flags: ignoreversion uninsneveruninstall; Check: HasPrivileges And HasApp('excel.exe');
-Source: "References\exe.config" ; DestDir: "{code:GetAppFolder|winword.exe}";  DestName: "WINWORD.EXE.CONFIG";  Flags: ignoreversion uninsneveruninstall; Check: HasPrivileges And HasApp('winword.exe');
-Source: "References\exe.config" ; DestDir: "{code:GetAppFolder|msaccess.exe}"; DestName: "MSACCESS.EXE.CONFIG"; Flags: ignoreversion uninsneveruninstall; Check: HasPrivileges And HasApp('msaccess.exe');
-Source: "References\exe.config" ; DestDir: "{code:GetAppFolder|outlook.exe}";  DestName: "OUTLOOK.EXE.CONFIG";  Flags: ignoreversion uninsneveruninstall; Check: HasPrivileges And HasApp('outlook.exe');
 
 [Icons]
 Name: "{group}\Project Home Page";  Filename: {#AppURL};                      WorkingDir: "{app}";
@@ -124,108 +122,7 @@ Name: "{group}\Start Opera";        Filename: "{app}\Scripts\StartOpera.vbs";   
 Name: "{group}\Start PhantomJS";    Filename: "{app}\Scripts\StartPhantomJS.vbs";        Components: pkg_pjs;
 
 
-[Registry]
-
-;Firefox plugins
-;Root: HKCU; Subkey: "Software\Mozilla\Firefox\Extensions"; ValueName: "{{a6fd85ed-e919-4a43-a5af-8da18bda539f}"; ValueType: string; ValueData:"{app}\selenium-ide.xpi"; Flags: uninsdeletevalue; Components: pkg_ide;
-;Root: HKCU; Subkey: "Software\Mozilla\Firefox\Extensions"; ValueName: "vbformatters@florent.breheret"; ValueType: string; ValueData:"{app}\vbformatters.xpi"; Flags: uninsdeletevalue; Components: pkg_ide;
-;Root: HKCU; Subkey: "Software\Mozilla\Firefox\Extensions"; ValueName: "implicit-wait@florent.breheret"; ValueType: string; ValueData:"{app}\implicit-wait.xpi"; Flags: uninsdeletevalue; Components: pkg_ide;
-
-;IE tweaks: Force the tabs to run in the same process as the manager process
-;Root: HKCU; Subkey: "Software\Microsoft\Internet Explorer\Main"; ValueName: "TabProcGrowth"; ValueType: dword; ValueData: 0; Flags: uninsdeletevalue; Components: pkg_ie;
-
-;IE tweaks: Allow file navigation
-Root: HKCU; Subkey: "Software\Microsoft\Internet Explorer\Main\FeatureControl\FEATURE_LOCALMACHINE_LOCKDOWN"; ValueName: "iexplore.exe"; ValueType: dword; ValueData: 0; Components: pkg_ie;
-Root: HKCU; Subkey: "Software\Microsoft\Internet Explorer\Main\FeatureControl\FEATURE_RESTRICT_FILEDOWNLOAD"; ValueName: "iexplore.exe"; ValueType: dword; ValueData: 0; Components: pkg_ie;
-
-;IE tweaks: Maintain a connection to the instance (for IE11)
-Root: HKCU; Subkey: "SOFTWARE\Microsoft\Internet Explorer\Main\FeatureControl\FEATURE_BFCACHE"; ValueName: "iexplore.exe"; ValueType: dword; ValueData: 0; Components: pkg_ie;
-
-;IE tweaks: Restore default zoom level
-Root: HKCU; Subkey: "Software\Microsoft\Internet Explorer\Zoom"; ValueName: "ZoomFactor"; Flags: dontcreatekey deletevalue; Components: pkg_ie;
-Root: HKCU; Subkey: "Software\Microsoft\Internet Explorer\Zoom"; ValueName: "ResetTextSizeOnStartup"; ValueType: dword; ValueData: 1       ; Components: pkg_ie;
-Root: HKCU; Subkey: "Software\Microsoft\Internet Explorer\Zoom"; ValueName: "ResetZoomOnStartup";     ValueType: dword; ValueData: 1       ; Components: pkg_ie;
-Root: HKCU; Subkey: "Software\Microsoft\Internet Explorer\Zoom"; ValueName: "ResetZoomOnStartup2";    ValueType: dword; ValueData: 1       ; Components: pkg_ie;
-
-;IE tweaks: Disable enhanced protected mode
-Root: HKCU; Subkey: "Software\Microsoft\Internet Explorer\Main"; ValueName: "Isolation";      Flags: dontcreatekey deletevalue; Components: pkg_ie;
-Root: HKCU; Subkey: "Software\Microsoft\Internet Explorer\Main"; ValueName: "Isolation64Bit"; Flags: dontcreatekey deletevalue; Components: pkg_ie;
-
-;IE tweaks: Disable autocomplete
-Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Explorer\AutoComplete"; ValueName: "AutoSuggest"; ValueType: string; ValueData: "no"; Components: pkg_ie;
-Root: HKCU; Subkey: "Software\Microsoft\Internet Explorer\Main"; ValueName: "Use FormSuggest";       ValueType: string; ValueData: "no"; Components: pkg_ie;
-Root: HKCU; Subkey: "Software\Microsoft\Internet Explorer\Main"; ValueName: "FormSuggest Passwords"; ValueType: string; ValueData: "no"; Components: pkg_ie;
-Root: HKCU; Subkey: "Software\Microsoft\Internet Explorer\Main"; ValueName: "FormSuggest PW Ask";    ValueType: string; ValueData: "no"; Components: pkg_ie;
-
-;IE tweaks: Disable warn
-Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Internet Settings"; ValueName: "WarnonBadCertRecving"; ValueType: dword; ValueData: 0; Components: pkg_ie;
-Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Internet Settings"; ValueName: "WarnonZoneCrossing";   ValueType: dword; ValueData: 0; Components: pkg_ie;
-Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Internet Settings"; ValueName: "WarnOnPostRedirect";   ValueType: dword; ValueData: 0; Components: pkg_ie;
-
-;IE tweaks: Disable Check for publisher's certificate revocation
-Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\WinTrust\Trust Providers\Software Publishing"; ValueName: "State"; ValueType: dword; ValueData: 146944; Components: pkg_ie;
-;IE tweaks: Disable Check for server certificate revocation
-Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Internet Settings"; ValueName: "CertificateRevocation"; ValueType: dword; ValueData: 0; Components: pkg_ie;
-;IE tweaks: Disable Check for signatures on downloaded programs
-Root: HKCU; Subkey: "Software\Microsoft\Internet Explorer\Download"; ValueName: "CheckExeSignatures"; ValueType: string; ValueData: "no"; Components: pkg_ie;
-
-;IE tweaks: Disable Check default browser
-Root: HKCU; Subkey: "Software\Microsoft\Internet Explorer\Main"; ValueName: "Check_Associations"; ValueType: string; ValueData: "no"; Components: pkg_ie;
-
-;IE tweaks: Disable accelerator button
-Root: HKCU; Subkey: "Software\Microsoft\Internet Explorer\Activities"; ValueName: "NoActivities"; ValueType: dword; ValueData: 1; Components: pkg_ie;
-
-;IE tweaks: Set the same protected mode for all zones  Disable=3 Enable=0
-Root: HKCU; Subkey: "Software\Microsoft\Internet Explorer\Main"; ValueName: "NoProtectedModeBanner"; ValueType: dword; ValueData: 1; Components: pkg_ie;
-Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Internet Settings\Zones\0"; ValueName: "2500"; ValueType: dword; ValueData: 3; Components: pkg_ie;
-Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Internet Settings\Zones\1"; ValueName: "2500"; ValueType: dword; ValueData: 3; Components: pkg_ie;
-Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Internet Settings\Zones\2"; ValueName: "2500"; ValueType: dword; ValueData: 3; Components: pkg_ie;
-Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Internet Settings\Zones\3"; ValueName: "2500"; ValueType: dword; ValueData: 3; Components: pkg_ie;
-Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Internet Settings\Zones\4"; ValueName: "2500"; ValueType: dword; ValueData: 3; Components: pkg_ie;
-
-;IE tweaks: Enable all cookies
-Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Internet Settings";         ValueName: "PrivacyAdvanced"; ValueType: dword; ValueData: 1; Components: pkg_ie;
-Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Internet Settings\Zones\3"; ValueName: "1A10";            ValueType: dword; ValueData: 1; Components: pkg_ie;
-
-;IE tweak: Allow HTTP Basic Authentication in url
-Root: HKCU; Subkey: "Software\Microsoft\Internet Explorer\Main\FeatureControl\FEATURE_HTTP_USERNAME_PASSWORD_DISABLE"; ValueName: "iexplore.exe"; ValueType: dword; ValueData: 0; Components: pkg_ie;
-
-;IE tweak: Turn off popup blocker
-Root: HKCU; Subkey: "Software\Microsoft\Internet Explorer\New Windows"; ValueName: "PopupMgr"; ValueType: dword; ValueData: 0; Components: pkg_ie;
-
-;IE tweak: Delete browsing history on exit
-Root: HKCU; Subkey: "Software\Microsoft\Internet Explorer\Privacy"; ValueName: "ClearBrowsingHistoryOnExit"; ValueType: dword; ValueData: 1; Components: pkg_ie;
-
-;IE tweak: Disable cache
-Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Internet Settings\CACHE";             ValueName: "Persistent";  ValueType: dword; ValueData: 0;    Components: pkg_ie;
-Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Internet Settings";                   ValueName: "SyncMode5";   ValueType: dword; ValueData: 3;    Components: pkg_ie;
-Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Internet Settings\Url History";       ValueName: "DaysToKeep";  ValueType: dword; ValueData: 0;    Components: pkg_ie;
-Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Internet Settings\5.0\Cache\Content"; ValueName: "CacheLimit";  ValueType: dword; ValueData: 2000; Components: pkg_ie;
-Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Internet Settings\Cache\Content";     ValueName: "CacheLimit";  ValueType: dword; ValueData: 2000; Components: pkg_ie;
-
-;File association for the console
-Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\App Paths\vbsc.exe"; ValueType: string; ValueData: "{app}\vbsc.exe"; Flags: deletekey uninsdeletekey; Components: pkg_cons;
-
-Root: HKCU; Subkey: "Software\Classes\VBSFile\Shell\Debug"; ValueType: string; ValueData: "Debug"; Flags: deletekey uninsdeletekey;
-Root: HKCU; Subkey: "Software\Classes\VBSFile\Shell\Debug\Command"; ValueType: expandsz; ValueData: """%SystemRoot%\System32\wscript.exe"" //D //X ""%1"" %*"; Components: pkg_cons;
-
-Root: HKCU; Subkey: "Software\Classes\VBSFile\shell\runas"; ValueType: string; ValueName: "HasLUAShield"; ValueData: ""; Flags: deletekey uninsdeletekey;
-Root: HKCU; Subkey: "Software\Classes\VBSFile\shell\runas\Command"; ValueType: expandsz; ValueData: """%SystemRoot%\System32\wscript.exe"" ""%1"" %*";
-
-Root: HKCU; Subkey: "Software\Classes\VBSFile\Shell\RunExt"; ValueType: string; ValueData: "Run VBScript"; Flags: deletekey uninsdeletekey; Components: pkg_cons;
-Root: HKCU; Subkey: "Software\Classes\VBSFile\Shell\RunExt\Command"; ValueType: string; ValueData: """{app}\vbsc.exe"" -i ""%1"" %*"; Components: pkg_cons;
-
-Root: HKCU; Subkey: "Software\Classes\Directory\shell\RunExt"; ValueType: string; ValueData: "Run VBScripts"; Flags: deletekey uninsdeletekey; Components: pkg_cons;
-Root: HKCU; Subkey: "Software\Classes\Directory\shell\RunExt\Command"; ValueType: string; ValueData: """{app}\vbsc.exe"" -i ""%1\*.vbs"""; Components: pkg_cons;
-
-;Add excel trusted location for templates and examples
-Root: HKCU; Subkey: "Software\Microsoft\Office\{code:GetOfficeVersion|Excel}.0\Excel\Security\Trusted Locations\Selenium1"; ValueName: "Path"; ValueType: String; ValueData: "{app}\Templates"; Flags: uninsdeletekey; Check: HasExcel;
-Root: HKCU; Subkey: "Software\Microsoft\Office\{code:GetOfficeVersion|Excel}.0\Excel\Security\Trusted Locations\Selenium2"; ValueName: "Path"; ValueType: String; ValueData: "{app}\Examples";  Flags: uninsdeletekey; Check: HasExcel;
-Root: HKCU; Subkey: "Software\Microsoft\Office\{code:GetOfficeVersion|Word}.0\Word\Security\Trusted Locations\Selenium1";   ValueName: "Path"; ValueType: String; ValueData: "{app}\Templates"; Flags: uninsdeletekey; Check: HasWord;
-Root: HKCU; Subkey: "Software\Microsoft\Office\{code:GetOfficeVersion|Word}.0\Word\Security\Trusted Locations\Selenium2";   ValueName: "Path"; ValueType: String; ValueData: "{app}\Examples";  Flags: uninsdeletekey; Check: HasWord;
-
-;Enable WScript host in case it's been disabled
-Root: HKCU; Subkey: "Software\Microsoft\Windows Script Host\Settings"; ValueName: "Enabled"; ValueType: dword; ValueData: 1; 
+; KTOOL: registration is limited to the Selenium COM library below.
 
 [Run]
 ;Filename: "{app}\RegNet.exe"; Parameters: "-r"; WorkingDir: {app}; Flags: waituntilterminated runascurrentuser runhidden; StatusMsg: "Register for COM interoperability";
@@ -234,12 +131,7 @@ Filename: "{code:GetAppPath|firefox.exe}"; Parameters: "-url ""{app}\extensions.
 [UninstallRun]
 ;Filename: "{app}\RegNet.exe"; Parameters: "-u"; WorkingDir: {app}; Flags: waituntilterminated runascurrentuser runhidden; StatusMsg: "Unregister for COM interoperability"; 
 
-[InstallDelete]
-Type: filesandordirs; Name: "{localappdata}\Temp\Selenium"
-
-[UninstallDelete]
-Type: filesandordirs; Name: "{app}"                         
-Type: filesandordirs; Name: "{localappdata}\Temp\Selenium"
+; KTOOL: preserve existing profiles, examples and other user-created files.
 
 [Code]
 var
@@ -516,7 +408,7 @@ Procedure RegClass(Const lib : TNetLib; Const guid, progid, typename: String);
     If Not IsUninstaller Then Begin
       RegString(HK, key, '', progid);
       RegString(HK, key + '\CLSID', '', guid);
-    End
+    End;
 
     RegClsid(lib, HK, guid, progid, typename, '{sys}');
     If IsWin64 Then
@@ -566,7 +458,7 @@ Procedure RegisterAssembly();
                    
 Function InitializeSetup() : Boolean;
   Begin
-    ALL_USERS := HasPrivileges();
+    ALL_USERS := False; { Same-user install remains writable for automatic driver updates. }
     InitRootKeys();
     //AssertFrameworkPresent('3.5');
     Result := True;
@@ -601,16 +493,16 @@ Procedure CurPageChanged(CurPageID: Integer);
   End;
 
 Procedure CurStepChanged(CurStep: TSetupStep);
+  Var code: Integer;
   Begin
-    If CurStep = ssInstall Then Begin
-      UninstallPrevious('SeleniumWrapper');
-      UninstallPrevious('{#AppId}');
-    End Else If CurStep = ssPostInstall Then Begin
+    If CurStep = ssPostInstall Then Begin
       RegisterAssembly();
-      PatchOfficeFileVersion();
+      If Not Exec(ExpandConstant('{app}\SeleniumBasic.DriverSetup.exe'), '/all', ExpandConstant('{app}'), SW_HIDE, ewWaitUntilTerminated, code) Then
+        RaiseException('Automatic browser driver preparation could not start.');
+      If code <> 0 Then
+        RaiseException('Some browser drivers could not be prepared. See KTOOL_DriverSetup.log in the SeleniumBasic folder.');
     End;
   End;
-
 Procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep); 
   Begin
     If CurUninstallStep = usUninstall  Then Begin

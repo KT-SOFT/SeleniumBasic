@@ -12,7 +12,12 @@ namespace Selenium.Core {
         const string HEADER_CONTENT_TYPE = "application/json;charset=UTF-8";
         const string HEADER_ACCEPT = "application/json";
 
-        private readonly int _response_timeout;
+        private int _response_timeout;
+        private readonly bool _isLocal;
+        internal int ResponseTimeout {
+            get { return _response_timeout; }
+            set { _response_timeout = value; }
+        }
         private readonly string _server_uri;
 
         private RequestMethod _request_method;
@@ -24,12 +29,11 @@ namespace Selenium.Core {
         internal RemoteServer(string serverAddress, bool isLocal, int timeout) {
             _server_uri = serverAddress.TrimEnd('/');
             _response_timeout = timeout;
+            _isLocal = isLocal;
 
             HttpWebRequest.DefaultMaximumErrorResponseLength = -1;
             HttpWebRequest.DefaultMaximumResponseHeadersLength = -1;
-            if (isLocal) {
-                HttpWebRequest.DefaultWebProxy = null;
-            } else {
+            if (!isLocal) {
                 // Handle credentials for Basic authentication
                 var creds = Regex.Match(_server_uri, @"://([^:/@]+):([^:/@]+)@");
                 if (creds.Success) {
@@ -174,6 +178,9 @@ namespace Selenium.Core {
             request.Method = FormatRequestMethod(method);
             request.Accept = HEADER_ACCEPT;
             request.KeepAlive = true;
+            request.Timeout = _response_timeout;
+            request.ReadWriteTimeout = _response_timeout;
+            if (_isLocal) request.Proxy = null;
 
             if (_credentials != null) {
                 request.Credentials = _credentials;

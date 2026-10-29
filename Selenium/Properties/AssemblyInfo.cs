@@ -37,7 +37,7 @@ using Selenium.Internal;
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("2.0.9.0")]
-[assembly: AssemblyFileVersion("2.0.9.0")]
+[assembly: AssemblyFileVersion("2.0.9.1")]
 [assembly: TypeLibVersion(2, 0)]
 
 [assembly: NeutralResourcesLanguage("en-US")]

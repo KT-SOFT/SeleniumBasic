@@ -91,14 +91,16 @@ namespace Selenium {
             }
             set {
                 if (value == timeout_server) return;
+                if (value == 0 || value < -1) throw new Errors.ArgumentError("Server timeout must be positive milliseconds or -1.");
                 timeout_server = value;
+                if (_session != null) _session.server.ResponseTimeout = value;
             }
         }
 
         internal void SetSession(RemoteSession session) {
             _session = session;
             SendTimeoutPageLoad(_session, timeout_pageload);
-            SendTimeoutScript(_session, timeout_pageload);
+            SendTimeoutScript(_session, timeout_script);
         }
 
     }

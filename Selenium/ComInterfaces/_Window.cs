@@ -34,6 +34,15 @@ namespace Selenium.ComInterfaces {
         [DispId(550), Description("Get the title of the window")]
         string Title { get; }
 
+        [DispId(551), Description("Browser window handle. Use this value to switch to an exact window.")]
+        string Handle { get; }
+
+        [DispId(552), Description("True while this window handle is still open.")]
+        bool IsAlive { get; }
+
+        [DispId(553), Description("Decimal Win32 HWND of a uniquely identified local browser window; 0 if remote, closed or ambiguous.")]
+        string NativeHandle { get; }
+
         [DispId(554), Description("Gets the position of the browser window relative to the upper-left corner of the screen.")]
         Point Position();
 

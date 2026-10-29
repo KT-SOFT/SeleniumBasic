@@ -60,19 +60,22 @@ namespace Selenium {
             ExtendCapabilities(wd, false);
 
             var svc = new DriverService();
-            svc.AddArgument("--host=localhost");
             svc.AddArgument("--port=" + svc.IPEndPoint.Port.ToString());
+            svc.AddArgument("--silent");
             svc.Start("edgedriver.exe", true);
             return svc;
         }
 
         internal static void ExtendCapabilities(WebDriver wd, bool remote) {
+            // Chromium Edge uses the same argument/preference/profile model as
+            // Chrome. The old empty edgeOptions discarded all those settings.
+            ChromeDriver.ExtendCapabilities(wd, remote);
             Capabilities capa = wd.Capabilities;
-
             Dictionary opts;
-            if (!capa.TryGetValue("edgeOptions", out opts))
-                capa["edgeOptions"] = opts = new Dictionary();
-
+            if (!capa.TryGetValue("chromeOptions", out opts)) opts = new Dictionary();
+            capa.Remove("chromeOptions");
+            capa.Remove("edgeOptions");
+            capa["ms:edgeOptions"] = opts;
         }
 
     }

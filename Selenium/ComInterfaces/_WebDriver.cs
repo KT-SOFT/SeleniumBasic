@@ -8,6 +8,20 @@ namespace Selenium.ComInterfaces {
     [Guid("0277FC34-FD1B-4616-BB19-CC6284398AA5")]
     [ComVisible(true), InterfaceType(ComInterfaceType.InterfaceIsIDispatch)]
     public interface _WebDriver {
+        [DispId(3001), Description("Last protocol or driver-update error code; 0 if none.")]
+        int LastErrorCode { get; }
+        [DispId(3002), Description("Last error message. Retained until ClearLastError.")]
+        string LastErrorMessage { get; }
+        [DispId(3003), Description("Operation that caused the last error.")]
+        string LastErrorStage { get; }
+        [DispId(3004), Description("UTC timestamp of the last error.")]
+        string LastErrorTime { get; }
+        [DispId(3005), Description("Machine-readable last error JSON.")]
+        string LastErrorJson { get; }
+        [DispId(3006), Description("Clear retained diagnostics without changing the browser.")]
+        void ClearLastError();
+        [DispId(3007), Description("Original HRESULT of the last error.")]
+        int LastErrorHResult { get; }
 
         #region Setup
 
@@ -115,6 +129,18 @@ namespace Selenium.ComInterfaces {
 
         [DispId(159), Description("Returns the the current window.")]
         Window Window { get; }
+
+        [DispId(160), Description("Handle of the currently selected live browser window.")]
+        string WindowHandle { get; }
+
+        [DispId(161), Description("Handles of every open browser window in this session.")]
+        List WindowHandles { get; }
+
+        [DispId(162), Description("Switch to an exact browser window handle.")]
+        Window SwitchToWindowByHandle(string handle, int timeout = -1, bool raise = true);
+
+        [DispId(164), Description("Recover a surviving window after a self-closing popup.")]
+        Window RecoverWindow();
 
         [DispId(163), Description("Returns the handles of all windows within the current session.")]
         List Windows { get; }

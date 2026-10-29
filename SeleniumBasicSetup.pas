@@ -10,7 +10,7 @@ lib.TypeVersion := '2.0';
 lib.PathDll := ExpandConstant('{app}\Selenium.dll');
 lib.PathTlb32 := ExpandConstant('{app}\Selenium32.tlb');
 lib.PathTlb64 := ExpandConstant('{app}\Selenium64.tlb');
-lib.Runtime := 'v2.0.50727';
+lib.Runtime := 'v4.0.30319';
 
 RegTypeLib(lib);
 
